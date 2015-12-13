@@ -54,11 +54,13 @@ module.exports = function(config) {
       'bower_components/lodash/lodash.js',
       'bower_components/angular-filter/dist/angular-filter.min.js',
       'bower_components/ngtoast/dist/ngToast.js',
+      'bower_components/bootstrap3-dialog/dist/js/bootstrap-dialog.min.js',
       'bower_components/angular-mocks/angular-mocks.js',
       // endbower
       'src/app/app.js',
       'src/app/app.controller.js',
       'src/app/**/*.js',
+      'src/components/**/*.js',
       'test/spec/**/*.js'
     ],
 
@@ -80,10 +82,23 @@ module.exports = function(config) {
       'PhantomJS'
     ],
 
+    reporters: ['coverage','progress'],
+
+    preprocessors: {
+      'src/*/{*.js,!(test)/**/*.js}': 'coverage'
+    },
+
+    coverageReporter: {
+      type: 'html',
+      dir: '../reports/zeppelin-web-coverage',
+      subdir: '.'
+    },
+
     // Which plugins to enable
     plugins: [
       'karma-phantomjs-launcher',
-      'karma-jasmine'
+      'karma-jasmine',
+      'karma-coverage'
     ],
 
     // Continuous Integration mode

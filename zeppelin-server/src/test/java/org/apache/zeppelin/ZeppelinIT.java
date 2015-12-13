@@ -17,20 +17,10 @@
 
 package org.apache.zeppelin;
 
-import static org.junit.Assert.*;
-
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
-import org.openqa.selenium.TimeoutException;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxBinary;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -40,11 +30,17 @@ import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.util.LinkedList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 /**
  * Test Zeppelin with web brower.
- * 
+ *
  * To test, ZeppelinServer should be running on port 8080
- * On OSX, you'll need firefox 31.0 installed. 
+ * On OSX, you'll need firefox 42.0 installed.
  *
  */
 public class ZeppelinIT {
@@ -141,9 +137,11 @@ public class ZeppelinIT {
     (new WebDriverWait(driver, 60)).until(new ExpectedCondition<Boolean>() {
       public Boolean apply(WebDriver d) {
         return driver.findElement(By.xpath(getParagraphXPath(paragraphNo)
-                + "//div[@class=\"control\"]//span[1][text()=\" " + state + " \"]"))
+            + "//div[@class='control']//span[1][contains(.,'" + state + "')]"))
             .isDisplayed();
-      };
+      }
+
+      ;
     });
   }
 
@@ -165,17 +163,15 @@ public class ZeppelinIT {
     }
   }
 
-	@Test
+  @Test
   public void testAngularDisplay() throws InterruptedException{
     if (!endToEndTestEnabled()) {
       return;
     }
+    createNewNote();
 
-	  String noteName = createNewNoteAndGetName();
-	  driver.findElement(By.partialLinkText(noteName)).click();
-
-	  // wait for first paragraph's " READY " status text
-	  waitForParagraph(1, "READY");
+    // wait for first paragraph's " READY " status text
+    waitForParagraph(1, "READY");
 
     /*
      * print angular template
@@ -293,7 +289,7 @@ public class ZeppelinIT {
     System.out.println("testCreateNotebook Test executed");
   }
 
-  private String createNewNoteAndGetName() {
+  private void createNewNote() {
     List<WebElement> notebookLinks = driver.findElements(By
         .xpath("//div[contains(@class, \"col-md-4\")]/div/ul/li"));    
     List<String> notebookTitles = new LinkedList<String>();
@@ -301,32 +297,17 @@ public class ZeppelinIT {
       notebookTitles.add(el.getText());
     }
     
-	WebElement createNoteLink = driver.findElement(By.xpath("//div[contains(@class, \"col-md-4\")]/div/h5/a"));
-	createNoteLink.click();
+    WebElement createNoteLink = driver.findElement(By.xpath("//div[contains(@class, \"col-md-4\")]/div/h5/a[contains(.,'Create new note')]"));
+    createNoteLink.click();
 
-	WebDriverWait block = new WebDriverWait(driver, 10);
-	WebElement modal = block.until(ExpectedConditions.visibilityOfElementLocated(By.id("noteNameModal")));
-	WebElement createNoteButton = modal.findElement(By.id("createNoteButton"));
-	createNoteButton.click();
+    WebDriverWait block = new WebDriverWait(driver, 10);
+    WebElement modal = block.until(ExpectedConditions.visibilityOfElementLocated(By.id("noteNameModal")));
+    WebElement createNoteButton = modal.findElement(By.id("createNoteButton"));
+    createNoteButton.click();
 
     try {
       Thread.sleep(500); // wait for notebook list updated
     } catch (InterruptedException e) {
     } 
-
-    List<WebElement> notebookLinksAfterCreate = driver.findElements(By
-        .xpath("//div[contains(@class, \"col-md-4\")]/div/ul/li"));
-
-    Iterator<WebElement> it = notebookLinksAfterCreate.iterator();
-    while (it.hasNext()) {
-      WebElement newEl = it.next();
-      if (notebookTitles.contains(newEl.getText())) {
-        
-        it.remove();
-      }
-    }
-
-    assertEquals(1, notebookLinksAfterCreate.size());
-    return notebookLinksAfterCreate.get(0).getText();
   }
 }
